@@ -395,12 +395,71 @@ type flushSyncWriter interface {
 	io.Writer
 }
 
+const (
+	OutputFile OutputType = iota
+	OutputStdErr
+	OutputBoth
+)
+
+type OutputType uint16
+
+func (ot OutputType) String() string {
+	switch ot {
+	case OutputFile:
+		return "File"
+	case OutputStdErr:
+		return "StdErr"
+	case OutputBoth:
+		return "Both"
+	default:
+		return "Unknown"
+	}
+}
+
+func (ot OutputType) MarshalText() ([]byte, error) {
+	return []byte(ot.String()), nil
+}
+
+func (ot *OutputType) UnmarshalText(text []byte) error {
+	switch strings.ToLower(string(text)) {
+	case "file":
+		*ot = OutputFile
+	case "stderr":
+		*ot = OutputStdErr
+	case "both":
+		*ot = OutputBoth
+	}
+
+	return nil
+}
+
+type Config struct {
+	Output    OutputType // -logtostderr -alsologtostderr
+	OutputDir string
+
+	StdErrThreshold int32 // -stderrthreshold
+
+	Verbosity               int      // -v
+	VerbosityModulePatterns []string // -vmodule
+}
+
+func Apply(c Config) {
+	// Mimic flag.Set
+	logging.toStderr = (c.Output == OutputStdErr)
+	logging.alsoToStderr = (c.Output == OutputBoth)
+
+	logging.verbosity.Set(strconv.FormatInt(int64(c.Verbosity), 10))
+	logging.vmodule.Set(strings.Join(c.VerbosityModulePatterns, ","))
+
+	// See glog_file.go
+	logDir := c.OutputDir
+	if logDir == "" {
+		logDir = os.TempDir()
+	}
+	logDirs = []string{logDir}
+}
+
 func init() {
-	flag.BoolVar(&logging.toStderr, "logtostderr", false, "log to standard error instead of files")
-	flag.BoolVar(&logging.alsoToStderr, "alsologtostderr", false, "log to standard error as well as files")
-	flag.Var(&logging.verbosity, "v", "log level for V logs")
-	flag.Var(&logging.stderrThreshold, "stderrthreshold", "logs at or above this threshold go to stderr")
-	flag.Var(&logging.vmodule, "vmodule", "comma-separated list of pattern=N settings for file-filtered logging")
 	flag.Var(&logging.traceLocation, "log_backtrace_at", "when logging hits line file:N, emit a stack trace")
 
 	// Default stderrThreshold is ERROR.
