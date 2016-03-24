@@ -1,6 +1,7 @@
 package glog
 
 import (
+	"fmt"
 	"os"
 	"strconv"
 	"strings"
@@ -105,7 +106,12 @@ func Apply(c Config) {
 	logging.alsoToStderr = (c.Output == OutputBoth)
 	logging.stderrThreshold.Set(strconv.FormatInt(int64(c.StdErrThreshold), 10))
 	logging.verbosity.Set(strconv.FormatInt(int64(c.Verbosity), 10))
-	logging.vmodule.Set(strings.Join(c.VerbosityModulePatterns, ","))
+
+	vmodules := make([]string, len(c.VerbosityModules))
+	for i, vm := range c.VerbosityModules {
+		vmodules[i] = fmt.Sprintf("%s=%s", vm.Module, vm.Verbosity)
+	}
+	logging.vmodule.Set(strings.Join(vmodules, ","))
 
 	// See glog_file.go
 	logDirs = []string{c.OutputDir}
