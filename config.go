@@ -10,20 +10,20 @@ import (
 // Config defines output options. See Apply.
 type Config struct {
 	// Output defines the output medium.
-	Output OutputType `toml:"output",json:"output"`
+	Output OutputType `toml:"output" json:"output"`
 
 	// OutputDir defines the directory which logs will be written to. Must exist.
-	OutputDir string `toml:"output_dir",json:"output_dir"`
+	OutputDir string `toml:"output_dir" json:"output_dir" envconfig:"output_dir"`
 
 	// Verbosity
-	Verbosity        int `toml:"verbosity",json:"verbosity"`
+	Verbosity        int `toml:"verbosity" json:"verbosity"`
 	VerbosityModules []struct {
-		Module    string `toml:"module",json:"module"`
-		Verbosity int    `toml:"verbosity",json:"verbosity"`
-	} `toml:"verbosity_modules",json:"verbosity_modules"`
+		Module    string `toml:"module" json:"module"`
+		Verbosity int    `toml:"verbosity" json:"verbosity"`
+	} `toml:"verbosity_modules" json:"verbosity_modules" envconfig:"verbosity_modules"`
 
 	// StdErrThreshold defines the verbosity threshold which triggers message to log to stderr (in addition to file, if applicable)
-	StdErrThreshold int32 `toml:"-",json:"-"`
+	StdErrThreshold int32 `toml:"-" json:"-" envconfig:"-" ignore:"true"`
 }
 
 // DefaultConfig defines the default config.
